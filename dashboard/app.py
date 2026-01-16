@@ -1,5 +1,3 @@
-
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -1206,14 +1204,37 @@ def main():
                 st.markdown('<div class="section-header">Distribution des Prédictions</div>', unsafe_allow_html=True)
                 
                 pred_counts = filtered_df['salaire_pred_categorie_nn'].value_counts().sort_index()
-                fig = px.pie(
-                    values=pred_counts.values,
-                    names=['Bas salaire', 'Haut salaire'],
-                    color=['Bas salaire', 'Haut salaire'],
-                    color_discrete_map={'Bas salaire': '#EF4444', 'Haut salaire': '#10B981'}
-                )
-                fig.update_layout(height=300)
-                st.plotly_chart(fig, use_container_width=True)
+                
+                # CORRECTION: Vérifier qu'il y a au moins 2 catégories
+                if len(pred_counts) >= 2:
+                    # S'assurer que les noms correspondent aux valeurs
+                    names = ['Bas salaire', 'Haut salaire']
+                    values = []
+                    
+                    # Récupérer les valeurs dans l'ordre (0 puis 1)
+                    for i in range(2):
+                        if i in pred_counts.index:
+                            values.append(pred_counts[i])
+                        else:
+                            values.append(0)  # Valeur 0 si la catégorie n'existe pas
+                    
+                    fig = px.pie(
+                        values=values,
+                        names=names,
+                        color=names,
+                        color_discrete_map={'Bas salaire': '#EF4444', 'Haut salaire': '#10B981'}
+                    )
+                    fig.update_layout(height=300)
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    # Si une seule catégorie, afficher un message
+                    if len(pred_counts) == 1:
+                        categorie = 'Bas salaire' if 0 in pred_counts.index else 'Haut salaire'
+                        count = pred_counts.iloc[0]
+                        st.markdown(f"**Toutes les prédictions sont en : {categorie}**")
+                        st.markdown(f"**Nombre :** {count}")
+                    else:
+                        st.info("Aucune donnée de prédiction disponible")
                 
                 st.markdown('</div>', unsafe_allow_html=True)
             
